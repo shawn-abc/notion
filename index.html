@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>每日一句 & 待办事项</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background-color: #f5f7fa;
+            color: #2c3e50;
+            min-height: 100vh;
+            padding: 20px;
+            line-height: 1.5;
+        }
+
+        .app-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .date-section {
+            margin-bottom: 30px;
+            padding: 15px 0;
+            border-bottom: 1px solid #eaeaea;
+        }
+
+        .date-text {
+            font-size: 28px;
+            font-weight: 300;
+            color: #34495e;
+            letter-spacing: 0.5px;
+        }
+
+        .quote-section {
+            margin-bottom: 40px;
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+        }
+
+        .quote-container {
+            flex: 1;
+        }
+
+        .quote-text {
+            font-size: 20px;
+            font-weight: 400;
+            color: #2c3e50;
+            padding-right: 20px;
+            line-height: 1.6;
+        }
+
+        .refresh-btn {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+        }
+
+        .refresh-btn:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        .refresh-btn i {
+            margin-right: 6px;
+        }
+
+        .todo-section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 500;
+            color: #34495e;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+
+        .section-title i {
+            margin-right: 8px;
+            color: #3498db;
+        }
+
+        .todo-input-container {
+            display: flex;
+            margin-bottom: 20px;
+        }
+
+        .todo-input {
+            flex: 1;
+            padding: 12px 16px;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+            font-size: 16px;
+            background-color: white;
+            transition: border-color 0.2s;
+        }
+
+        .todo-input:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .add-btn {
+            background-color: #2ecc71;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            margin-left: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .add-btn:hover {
+            background-color: #27ae60;
+        }
+
+        .todo-list {
+            list-style-type: none;
+        }
+
+        .todo-item {
+            display: flex;
+            align-items: center;
+            padding: 14px 16px;
+            background-color: white;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            border: 1px solid #eee;
+            transition: all 0.2s ease;
+        }
+
+        .todo-item:hover {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            transform: translateY(-1px);
+        }
+
+        .todo-checkbox {
+            width: 20px;
+            height: 20px;
+            margin-right: 12px;
+            cursor: pointer;
+        }
+
+        .todo-text {
+            flex: 1;
+            font-size: 16px;
+        }
+
+        .todo-text.completed {
+            text-decoration: line-through;
+            color: #95a5a6;
+        }
+
+        .delete-btn {
+            background-color: transparent;
+            color: #e74c3c;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .delete-btn:hover {
+            background-color: #ffeaea;
+        }
+
+        .library-section {
+            margin-top: 50px;
+        }
+
+        .library-input-container {
+            display: flex;
+            margin-bottom: 20px;
+        }
+
+        .library-input {
+            flex: 1;
+            padding: 12px 16px;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+            font-size: 16px;
+            background-color: white;
+            transition: border-color 0.2s;
+        }
+
+        .library-input:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .library-list {
+            list-style-type: none;
+            margin-top: 20px;
+        }
+
+        .library-item {
+            display: flex;
+            align-items: center;
+            padding: 14px 16px;
+            background-color: white;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            border: 1px solid #eee;
+        }
+
+        .library-text {
+            flex: 1;
+            font-size: 16px;
+            color: #2c3e50;
+        }
+
+        .library-delete-btn {
+            background-color: transparent;
+            color: #7f8c8d;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .library-delete-btn:hover {
+            color: #e74c3c;
+            background-color: #ffeaea;
+        }
+
+        .empty-message {
+            text-align: center;
+            color: #95a5a6;
+            font-style: italic;
+            padding: 30px;
+            background-color: #f9f9f9;
+            border-radius: 6px;
+            margin-top: 10px;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            padding: 12px 0;
+            color: #7f8c8d;
+            font-size: 14px;
+            border-top: 1px solid #eee;
+        }
+
+        @media (max-width: 768px) {
+            .quote-section {
+                flex-direction: column;
+            }
+
+            .quote-text {
+                padding-right: 0;
+                margin-bottom: 15px;
+            }
+
+            .refresh-btn {
+                align-self: flex-end;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="date-section">
+            <div class="date-text" id="current-date">2024年6月11日 星期二</div>
+        </div>
+
+        <div class="quote-section">
+            <div class="quote-container">
+                <div class="quote-text" id="daily-quote">生活就像一盒巧克力，你永远不知道下一颗是什么味道。</div>
+            </div>
+            <button class="refresh-btn" id="refresh-quote">
+                <i class="fas fa-redo-alt"></i> 换一句
+            </button>
+        </div>
+
+        <div class="todo-section">
+            <div class="section-title">
+                <i class="fas fa-tasks"></i> 待办事项
+            </div>
+
+            <div class="todo-input-container">
+                <input type="text" class="todo-input" id="todo-input" placeholder="添加新的待办事项...">
+                <button class="add-btn" id="add-todo">添加</button>
+            </div>
+
+            <ul class="todo-list" id="todo-list">
+                <!-- 待办事项将在这里动态添加 -->
+            </ul>
+
+            <div class="stats">
+                <span id="todo-count">0 项待办</span>
+                <span id="completed-count">0 项已完成</span>
+            </div>
+        </div>
+
+        <div class="library-section">
+            <div class="section-title">
+                <i class="fas fa-book"></i> 每日一句素材库
+            </div>
+
+            <div class="library-input-container">
+                <input type="text" class="library-input" id="library-input" placeholder="添加新的句子到素材库...">
+                <button class="add-btn" id="add-to-library">添加</button>
+            </div>
+
+            <ul class="library-list" id="library-list">
+                <!-- 素材库句子将在这里动态添加 -->
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // 获取当前日期
+        function getCurrentDate() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = now.getMonth() + 1;
+            const day = now.getDate();
+            const weekdays = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"];
+            const weekday = weekdays[now.getDay()];
+
+            return `${year}年${month}月${day}日 ${weekday}`;
+        }
+
+        // 设置初始日期
+        document.getElementById('current-date').textContent = getCurrentDate();
+
+        // 初始句子库
+        let quoteLibrary = [
+            "我爱月夜，但我也爱星天。",
+            "在标准的汉语里左右逢缘，驶驭它们行走在坦途之上",
+            "遗忘和记忆都富有创造性",
+            "言语不多又不少，既能引出谈论的话题，又不会影响对方侃侃而谈",
+            "他自己没有勇气奋起而战，于是把争斗说成是庸俗的",
+            "一切被意识到的生活一旦被意识到就已成为过去，意义一旦成为意义就已走向未来",
+            "对意识的检查，在于半梦半醒和彻底清醒之间",
+            "我是自己的陌路人",
+            "悬而未决的谜案最容易刺激想象，而没有根据的想象容易引起恐惧",
+            "Tomorrow, and tomorrow, and tomorrow, / Creeps in this petty pace from day to day / To the last syllable of recorded time."
+        ];
+
+        // 待办事项数组
+        let todoList = [];
+
+        // 初始化显示
+        function initializeDisplay() {
+            // 显示随机一句
+            displayRandomQuote();
+
+            // 显示待办事项
+            renderTodoList();
+
+            // 显示句子库
+            renderQuoteLibrary();
+
+            // 更新统计
+            updateStats();
+        }
+
+        // 随机显示一句
+        function displayRandomQuote() {
+            if (quoteLibrary.length > 0) {
+                const randomIndex = Math.floor(Math.random() * quoteLibrary.length);
+                document.getElementById('daily-quote').textContent = quoteLibrary[randomIndex];
+            } else {
+                document.getElementById('daily-quote').textContent = "句子库为空，请先添加一些句子。";
+            }
+        }
+
+        // 渲染待办事项列表
+        function renderTodoList() {
+            const todoListElement = document.getElementById('todo-list');
+            todoListElement.innerHTML = '';
+
+            if (todoList.length === 0) {
+                const emptyMessage = document.createElement('div');
+                emptyMessage.className = 'empty-message';
+                emptyMessage.textContent = '暂无待办事项，添加一个吧！';
+                todoListElement.appendChild(emptyMessage);
+                return;
+            }
+
+            todoList.forEach((todo, index) => {
+                const todoItem = document.createElement('li');
+                todoItem.className = 'todo-item';
+
+                todoItem.innerHTML = `
+                    <input type="checkbox" class="todo-checkbox" ${todo.completed ? 'checked' : ''} data-index="${index}">
+                    <span class="todo-text ${todo.completed ? 'completed' : ''}">${todo.text}</span>
+                    <button class="delete-btn" data-index="${index}">删除</button>
+                `;
+
+                todoListElement.appendChild(todoItem);
+            });
+
+            // 添加复选框事件
+            document.querySelectorAll('.todo-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    const index = parseInt(this.getAttribute('data-index'));
+                    todoList[index].completed = this.checked;
+                    renderTodoList();
+                    updateStats();
+                });
+            });
+
+            // 添加删除事件
+            document.querySelectorAll('.delete-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const index = parseInt(this.getAttribute('data-index'));
+                    todoList.splice(index, 1);
+                    renderTodoList();
+                    updateStats();
+                });
+            });
+        }
+
+        // 渲染句子库
+        function renderQuoteLibrary() {
+            const libraryListElement = document.getElementById('library-list');
+            libraryListElement.innerHTML = '';
+
+            if (quoteLibrary.length === 0) {
+                const emptyMessage = document.createElement('div');
+                emptyMessage.className = 'empty-message';
+                emptyMessage.textContent = '句子库为空，请先添加一些句子。';
+                libraryListElement.appendChild(emptyMessage);
+                return;
+            }
+
+            quoteLibrary.forEach((quote, index) => {
+                const libraryItem = document.createElement('li');
+                libraryItem.className = 'library-item';
+
+                libraryItem.innerHTML = `
+                    <span class="library-text">${quote}</span>
+                    <button class="library-delete-btn" data-index="${index}">删除</button>
+                `;
+
+                libraryListElement.appendChild(libraryItem);
+            });
+
+            // 添加删除事件
+            document.querySelectorAll('.library-delete-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const index = parseInt(this.getAttribute('data-index'));
+                    quoteLibrary.splice(index, 1);
+                    renderQuoteLibrary();
+                    displayRandomQuote();
+                });
+            });
+        }
+
+        // 更新统计信息
+        function updateStats() {
+            const totalCount = todoList.length;
+            const completedCount = todoList.filter(todo => todo.completed).length;
+
+            document.getElementById('todo-count').textContent = `${totalCount} 项待办`;
+            document.getElementById('completed-count').textContent = `${completedCount} 项已完成`;
+        }
+
+        // 添加待办事项
+        document.getElementById('add-todo').addEventListener('click', function() {
+            const todoInput = document.getElementById('todo-input');
+            const todoText = todoInput.value.trim();
+
+            if (todoText) {
+                todoList.push({
+                    text: todoText,
+                    completed: false
+                });
+                todoInput.value = '';
+                renderTodoList();
+                updateStats();
+            }
+        });
+
+        // 添加句子到素材库
+        document.getElementById('add-to-library').addEventListener('click', function() {
+            const libraryInput = document.getElementById('library-input');
+            const quoteText = libraryInput.value.trim();
+
+            if (quoteText) {
+                quoteLibrary.push(quoteText);
+                libraryInput.value = '';
+                renderQuoteLibrary();
+                displayRandomQuote();
+            }
+        });
+
+        // 刷新每日一句
+        document.getElementById('refresh-quote').addEventListener('click', function() {
+            displayRandomQuote();
+        });
+
+        // 初始化页面
+        initializeDisplay();
+
+        // 添加键盘快捷键支持
+        document.getElementById('todo-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                document.getElementById('add-todo').click();
+            }
+        });
+
+        document.getElementById('library-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                document.getElementById('add-to-library').click();
+            }
+        });
+    </script>
+</body>
+</html>
