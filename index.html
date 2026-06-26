@@ -26,10 +26,17 @@
             margin: 0 auto;
         }
 
-        .date-section {
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 30px;
-            padding: 15px 0;
+            padding-bottom: 15px;
             border-bottom: 1px solid #eaeaea;
+        }
+
+        .date-section {
+            flex: 1;
         }
 
         .date-text {
@@ -39,11 +46,42 @@
             letter-spacing: 0.5px;
         }
 
+        .data-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .data-btn {
+            background-color: #9b59b6;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+        }
+
+        .data-btn:hover {
+            background-color: #8e44ad;
+        }
+
+        .data-btn i {
+            margin-right: 4px;
+        }
+
         .quote-section {
             margin-bottom: 40px;
             display: flex;
             align-items: flex-start;
             justify-content: space-between;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
         }
 
         .quote-container {
@@ -84,6 +122,10 @@
 
         .todo-section {
             margin-bottom: 40px;
+            background-color: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
         }
 
         .section-title {
@@ -118,6 +160,7 @@
         .todo-input:focus {
             outline: none;
             border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
         }
 
         .add-btn {
@@ -191,6 +234,10 @@
 
         .library-section {
             margin-top: 50px;
+            background-color: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
         }
 
         .library-input-container {
@@ -211,6 +258,7 @@
         .library-input:focus {
             outline: none;
             border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
         }
 
         .library-list {
@@ -270,6 +318,34 @@
             border-top: 1px solid #eee;
         }
 
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            background-color: #2ecc71;
+            color: white;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .notification.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .notification.error {
+            background-color: #e74c3c;
+        }
+
+        .notification.info {
+            background-color: #3498db;
+        }
+
         @media (max-width: 768px) {
             .quote-section {
                 flex-direction: column;
@@ -283,13 +359,36 @@
             .refresh-btn {
                 align-self: flex-end;
             }
+
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .data-controls {
+                align-self: flex-end;
+            }
         }
     </style>
 </head>
 <body>
     <div class="app-container">
-        <div class="date-section">
-            <div class="date-text" id="current-date">2024年6月11日 星期二</div>
+        <div class="header">
+            <div class="date-section">
+                <div class="date-text" id="current-date">2024年6月11日 星期二</div>
+            </div>
+            <div class="data-controls">
+                <button class="data-btn" id="export-data">
+                    <i class="fas fa-download"></i> 导出数据
+                </button>
+                <button class="data-btn" id="import-data">
+                    <i class="fas fa-upload"></i> 导入数据
+                </button>
+                <button class="data-btn" id="clear-data">
+                    <i class="fas fa-trash-alt"></i> 清空数据
+                </button>
+            </div>
         </div>
 
         <div class="quote-section">
@@ -337,6 +436,11 @@
         </div>
     </div>
 
+    <div class="notification" id="notification"></div>
+
+    <!-- 隐藏的文件输入框用于导入数据 -->
+    <input type="file" id="import-file" style="display: none;" accept=".json">
+
     <script>
         // 获取当前日期
         function getCurrentDate() {
@@ -350,25 +454,87 @@
             return `${year}年${month}月${day}日 ${weekday}`;
         }
 
+        // 显示通知
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification show ${type}`;
+
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        // 从localStorage加载数据
+        function loadFromLocalStorage() {
+            try {
+                // 加载待办事项
+                const savedTodos = localStorage.getItem('dailyAppTodos');
+                if (savedTodos) {
+                    return JSON.parse(savedTodos);
+                }
+            } catch (error) {
+                console.error('加载待办事项数据失败:', error);
+            }
+            return [];
+        }
+
+        // 保存数据到localStorage
+        function saveToLocalStorage(todos) {
+            try {
+                localStorage.setItem('dailyAppTodos', JSON.stringify(todos));
+                return true;
+            } catch (error) {
+                console.error('保存待办事项数据失败:', error);
+                return false;
+            }
+        }
+
+        // 从localStorage加载句子库
+        function loadQuotesFromLocalStorage() {
+            try {
+                // 加载句子库
+                const savedQuotes = localStorage.getItem('dailyAppQuotes');
+                if (savedQuotes) {
+                    return JSON.parse(savedQuotes);
+                }
+            } catch (error) {
+                console.error('加载句子库数据失败:', error);
+            }
+
+            // 如果没有保存的句子库，返回默认句子库
+            return [
+                "我爱月夜，但我也爱星天。",
+                "在标准的汉语里左右逢缘，驶驭它们行走在坦途之上",
+                "遗忘和记忆都富有创造性",
+                "言语不多又不少，既能引出谈论的话题，又不会影响对方侃侃而谈",
+                "他自己没有勇气奋起而战，于是把争斗说成是庸俗的",
+                "一切被意识到的生活一旦被意识到就已成为过去，意义一旦成为意义就已走向未来",
+                "对意识的检查，在于半梦半醒和彻底清醒之间",
+                "我是自己的陌路人",
+                "悬而未决的谜案最容易刺激想象，而没有根据的想象容易引起恐惧",
+                "“我一定会成为伟大的艺术家”他自言自语道，​“生来就是。​”新的念头一闪而过，伴着一阵悸动，他自己也不知该如何表达：“上天啊，我多少有几分天赋吧。​”他已然酩酊大醉，可其实只喝了一瓶啤酒。真正让他飘飘然的是一种比酒精更危险的麻药。",
+                "Tomorrow, and tomorrow, and tomorrow, / Creeps in this petty pace from day to day / To the last syllable of recorded time."
+            ];
+        }
+
+        // 保存句子库到localStorage
+        function saveQuotesToLocalStorage(quotes) {
+            try {
+                localStorage.setItem('dailyAppQuotes', JSON.stringify(quotes));
+                return true;
+            } catch (error) {
+                console.error('保存句子库数据失败:', error);
+                return false;
+            }
+        }
+
+        // 初始数据
+        let todoList = loadFromLocalStorage();
+        let quoteLibrary = loadQuotesFromLocalStorage();
+
         // 设置初始日期
         document.getElementById('current-date').textContent = getCurrentDate();
-
-        // 初始句子库
-        let quoteLibrary = [
-            "我爱月夜，但我也爱星天。",
-            "在标准的汉语里左右逢缘，驶驭它们行走在坦途之上",
-            "遗忘和记忆都富有创造性",
-            "言语不多又不少，既能引出谈论的话题，又不会影响对方侃侃而谈",
-            "他自己没有勇气奋起而战，于是把争斗说成是庸俗的",
-            "一切被意识到的生活一旦被意识到就已成为过去，意义一旦成为意义就已走向未来",
-            "对意识的检查，在于半梦半醒和彻底清醒之间",
-            "我是自己的陌路人",
-            "悬而未决的谜案最容易刺激想象，而没有根据的想象容易引起恐惧",
-            "Tomorrow, and tomorrow, and tomorrow, / Creeps in this petty pace from day to day / To the last syllable of recorded time."
-        ];
-
-        // 待办事项数组
-        let todoList = [];
 
         // 初始化显示
         function initializeDisplay() {
@@ -426,6 +592,14 @@
                 checkbox.addEventListener('change', function() {
                     const index = parseInt(this.getAttribute('data-index'));
                     todoList[index].completed = this.checked;
+
+                    // 保存到localStorage
+                    if (saveToLocalStorage(todoList)) {
+                        showNotification('待办事项已更新');
+                    } else {
+                        showNotification('保存失败，请重试', 'error');
+                    }
+
                     renderTodoList();
                     updateStats();
                 });
@@ -436,6 +610,14 @@
                 button.addEventListener('click', function() {
                     const index = parseInt(this.getAttribute('data-index'));
                     todoList.splice(index, 1);
+
+                    // 保存到localStorage
+                    if (saveToLocalStorage(todoList)) {
+                        showNotification('待办事项已删除');
+                    } else {
+                        showNotification('保存失败，请重试', 'error');
+                    }
+
                     renderTodoList();
                     updateStats();
                 });
@@ -472,6 +654,14 @@
                 button.addEventListener('click', function() {
                     const index = parseInt(this.getAttribute('data-index'));
                     quoteLibrary.splice(index, 1);
+
+                    // 保存到localStorage
+                    if (saveQuotesToLocalStorage(quoteLibrary)) {
+                        showNotification('句子已删除');
+                    } else {
+                        showNotification('保存失败，请重试', 'error');
+                    }
+
                     renderQuoteLibrary();
                     displayRandomQuote();
                 });
@@ -495,11 +685,22 @@
             if (todoText) {
                 todoList.push({
                     text: todoText,
-                    completed: false
+                    completed: false,
+                    createdAt: new Date().toISOString()
                 });
                 todoInput.value = '';
+
+                // 保存到localStorage
+                if (saveToLocalStorage(todoList)) {
+                    showNotification('待办事项已添加');
+                } else {
+                    showNotification('保存失败，请重试', 'error');
+                }
+
                 renderTodoList();
                 updateStats();
+            } else {
+                showNotification('请输入待办事项内容', 'error');
             }
         });
 
@@ -511,14 +712,111 @@
             if (quoteText) {
                 quoteLibrary.push(quoteText);
                 libraryInput.value = '';
+
+                // 保存到localStorage
+                if (saveQuotesToLocalStorage(quoteLibrary)) {
+                    showNotification('句子已添加到素材库');
+                } else {
+                    showNotification('保存失败，请重试', 'error');
+                }
+
                 renderQuoteLibrary();
                 displayRandomQuote();
+            } else {
+                showNotification('请输入句子内容', 'error');
             }
         });
 
         // 刷新每日一句
         document.getElementById('refresh-quote').addEventListener('click', function() {
             displayRandomQuote();
+        });
+
+        // 导出数据
+        document.getElementById('export-data').addEventListener('click', function() {
+            const exportData = {
+                todos: todoList,
+                quotes: quoteLibrary,
+                exportedAt: new Date().toISOString(),
+                version: '1.0'
+            };
+
+            const dataStr = JSON.stringify(exportData, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `daily-app-backup-${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            showNotification('数据已导出');
+        });
+
+        // 导入数据
+        document.getElementById('import-data').addEventListener('click', function() {
+            document.getElementById('import-file').click();
+        });
+
+        // 处理文件导入
+        document.getElementById('import-file').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+
+                    // 验证导入的数据格式
+                    if (importedData.todos && Array.isArray(importedData.todos) &&
+                        importedData.quotes && Array.isArray(importedData.quotes)) {
+
+                        // 确认是否要覆盖现有数据
+                        if (confirm('导入数据将覆盖当前数据，确定要导入吗？')) {
+                            todoList = importedData.todos;
+                            quoteLibrary = importedData.quotes;
+
+                            // 保存到localStorage
+                            saveToLocalStorage(todoList);
+                            saveQuotesToLocalStorage(quoteLibrary);
+
+                            // 更新显示
+                            initializeDisplay();
+                            showNotification('数据导入成功');
+                        }
+                    } else {
+                        showNotification('导入的文件格式不正确', 'error');
+                    }
+                } catch (error) {
+                    console.error('导入数据失败:', error);
+                    showNotification('导入数据失败，请检查文件格式', 'error');
+                }
+
+                // 重置文件输入
+                event.target.value = '';
+            };
+
+            reader.readAsText(file);
+        });
+
+        // 清空数据
+        document.getElementById('clear-data').addEventListener('click', function() {
+            if (confirm('确定要清空所有数据吗？此操作不可撤销。')) {
+                // 清空localStorage
+                localStorage.removeItem('dailyAppTodos');
+                localStorage.removeItem('dailyAppQuotes');
+
+                // 重置数据
+                todoList = [];
+                quoteLibrary = loadQuotesFromLocalStorage(); // 重置为默认句子库
+
+                // 更新显示
+                initializeDisplay();
+                showNotification('数据已清空', 'info');
+            }
         });
 
         // 初始化页面
@@ -535,6 +833,22 @@
             if (e.key === 'Enter') {
                 document.getElementById('add-to-library').click();
             }
+        });
+
+        // 自动保存提示
+        window.addEventListener('beforeunload', function() {
+            // 保存所有数据
+            saveToLocalStorage(todoList);
+            saveQuotesToLocalStorage(quoteLibrary);
+        });
+
+        // 添加一些额外的功能：页面加载时显示欢迎消息
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                if (todoList.length === 0 && quoteLibrary.length <= 11) {
+                    showNotification('欢迎使用每日一句与待办事项应用！数据已自动保存到浏览器本地。', 'info');
+                }
+            }, 1000);
         });
     </script>
 </body>
